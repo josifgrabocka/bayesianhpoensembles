@@ -74,7 +74,7 @@ class HPOScikitLearn:
 
         # checkpoint the model
 
-        path = f"logs/dataset={self.config['dataset_name']}/hpo-seed={self.config['current_seed']}/"
+        path = self.config["log_folder"] + f"hpo-seed={self.config['current_seed']}/"
         # create the path if it does not exist
         Path(path).mkdir(parents=True, exist_ok=True)
 
@@ -87,7 +87,15 @@ class HPOScikitLearn:
 
     def run_hpo(self):
 
-        study = optuna.create_study()
+        sampler = None
+        if self.config['sampler'] == "random":
+            sampler = optuna.samplers.RandomSampler()
+        elif self.config['sampler'] == "tpe":
+            sampler = optuna.samplers.TPESampler()
+        else:
+            raise ValueError("Unknown sampler " + self.config['sampler'])
+
+        study = optuna.create_study(sampler=sampler)
         study.optimize(self.evaluate, n_trials=self.config['num_trials'])
 
         print(study.best_params)
