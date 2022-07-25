@@ -1,0 +1,187 @@
+import os
+import numpy as np
+import pickle
+from sklearn.metrics import balanced_accuracy_score
+from sklearn.preprocessing import OneHotEncoder
+import pandas as pd
+
+class BayesianHyperEnsembles:
+
+    def __init__(self, config):
+        self.config = config
+
+        # load the data splits
+        self.x_val = None
+        self.y_val = None
+        self.x_test = None
+        self.y_test = None
+        self.num_seeds = -1
+
+        # load the checkpoints
+        self.models = []
+
+        # the validation errors of each model
+        self.model_val_accuracy = []
+
+        # the model posteriors
+        self.model_posteriors_ranks = []
+
+        # the model posteriors softmax
+        self.alpha = 10
+        self.model_posteriors_softmax = []
+
+        self.ohe_encoder = OneHotEncoder()
+        self.set_labels = set()
+
+        # the test predictions for each model
+        self.model_test_predictions = []
+
+        # load the data and the model checkpoints
+        self.load()
+
+        # compute posteriors
+        self.compute_model_predictions()
+
+        best_model_results = self.results_best_model()
+        ensemble_uniform_posteriors_results = self.results_ensemble_uniform_posterior()
+        bayesian_ensemble_results = self.results_bayesian_ensemble()
+
+        print("best", np.mean(best_model_results), np.std(best_model_results))
+        print("uniform-posterior", np.mean(ensemble_uniform_posteriors_results), np.std(ensemble_uniform_posteriors_results))
+        print("bayesian-ensemble", np.mean(bayesian_ensemble_results), np.std(bayesian_ensemble_results))
+
+    # load the data and the checkpoints for all the different seeds
+    def load(self):
+
+        path = self.config['dataset_folder']
+
+        # folders
+        seed_folders = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) and "hpo-seed=" in name]
+        self.num_seeds = len(seed_folders)
+
+        # numpy files for the data
+        self.x_val = np.load(path + "/x_val.npy")
+        self.y_val = np.load(path + "/y_val.npy").astype(int)
+        self.x_test = np.load(path + "/x_test.npy")
+        self.y_test = np.load(path + "/y_test.npy").astype(int)
+
+        for seed_folder in seed_folders:
+            seed_folder_path = path + "/" + seed_folder
+            checkpoint_files = [name for name in os.listdir(seed_folder_path)
+                                if not os.path.isdir(os.path.join(seed_folder_path, name)) and ".pickle" in name]
+
+            seed_models = []
+
+            for model_file in checkpoint_files:
+                model_file_path = seed_folder_path + "/" + model_file
+                classifier = pickle.load(open(model_file_path, 'rb'))
+                seed_models.append(classifier)
+
+            self.models.append(seed_models)
+
+    # compute the posteriors
+    def compute_model_predictions(self):
+
+        for seed_models in self.models:
+
+            seed_model_val_accuracy = []
+            seed_model_test_predictions = []
+
+            for model in seed_models:
+                seed_model_val_accuracy.append(balanced_accuracy_score(self.y_val, model.predict(self.x_val)))
+                model_test_prediction = model.predict(self.x_test)
+
+                for y in list(model_test_prediction.flat):
+                    self.set_labels.add(y)
+
+                seed_model_test_predictions.append(model_test_prediction.astype(int))
+
+                print(".")
+
+            print("--")
+            self.model_val_accuracy.append(seed_model_val_accuracy)
+            self.model_test_predictions.append(seed_model_test_predictions)
+
+
+    def convert_to_one_hot(self, y):
+        num_classes = len(self.set_labels)
+        return np.eye(num_classes)[y]
+
+    # create the bayesian ensemble
+    def results_bayesian_ensemble(self, posterior_type="bayesian"):
+
+        results = []
+
+        for seed_idx in range(self.num_seeds):
+
+            aggregated_ensemble_prediction = None
+
+            # compute the posteriors from the validation scores
+            accuracies_series = pd.Series(self.model_val_accuracy[seed_idx])
+            accuracies_ranks = accuracies_series.rank().to_numpy()
+            K = len(self.model_val_accuracy[seed_idx])
+            posterior = 2*(K - accuracies_ranks + 1) / (K*(K+1))
+
+            # compute the predictions for the test instances
+            for model_idx in range(len(self.model_val_accuracy[seed_idx])):
+                if aggregated_ensemble_prediction is None:
+                    aggregated_ensemble_prediction = posterior[model_idx] \
+                                                     * self.convert_to_one_hot(self.model_test_predictions[seed_idx][model_idx])
+                else:
+                    aggregated_ensemble_prediction += posterior[model_idx] \
+                                                     * self.convert_to_one_hot(self.model_test_predictions[seed_idx][model_idx])
+
+            test_accuracy = balanced_accuracy_score(self.y_test, np.argmax(aggregated_ensemble_prediction, axis=-1))
+
+            print("bayesian-ensemble", seed_idx, test_accuracy)
+
+            results.append(test_accuracy)
+
+        return results
+
+
+    def results_best_model(self):
+        results = []
+
+        for seed_idx in range(self.num_seeds):
+            best_model_idx = -1
+            best_model_val_accuracy = -1
+            for model_idx in range(len(self.model_val_accuracy[seed_idx])):
+                if self.model_val_accuracy[seed_idx][model_idx] > best_model_val_accuracy:
+                    best_model_val_accuracy = self.model_val_accuracy[seed_idx][model_idx]
+                    best_model_idx = model_idx
+
+            test_accuracy = balanced_accuracy_score(self.y_test, self.model_test_predictions[seed_idx][best_model_idx])
+            print("best", seed_idx, test_accuracy)
+            results.append(test_accuracy)
+
+        return results
+
+
+    # ensemble with uniform posterior
+    def results_ensemble_uniform_posterior(self):
+
+        results = []
+
+        for seed_idx in range(self.num_seeds):
+
+            aggregated_ensemble_prediction = None
+
+            for model_idx in range(len(self.model_val_accuracy[seed_idx])):
+                if aggregated_ensemble_prediction is None:
+                    aggregated_ensemble_prediction = self.convert_to_one_hot(
+                        self.model_test_predictions[seed_idx][model_idx])
+                else:
+                    aggregated_ensemble_prediction += self.convert_to_one_hot(
+                        self.model_test_predictions[seed_idx][model_idx])
+
+            # apply the uniform posterior
+            aggregated_ensemble_prediction /= len(self.model_val_accuracy[seed_idx])
+
+            test_accuracy = balanced_accuracy_score(self.y_test, np.argmax(aggregated_ensemble_prediction, axis=-1))
+
+            print("uniform-posterior", seed_idx, test_accuracy)
+
+            results.append(test_accuracy)
+
+        return results
