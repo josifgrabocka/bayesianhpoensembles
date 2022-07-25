@@ -4,7 +4,6 @@ from pathlib import Path
 import numpy as np
 import argparse
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--task_id', help='Parameter of the Top-K loss', type=int)
 parser.add_argument('--log_folder', help='where to save the hpo logs', type=str)
@@ -13,17 +12,13 @@ args = parser.parse_args()
 
 # define the configuration
 config = {}
-
 # the log folder
 config["log_folder"] = args.log_folder
-
 # HPO config
 config["num_trials"] = 50
 config["num_seeds"] = 5
-
 # dataset name
 config["dataset_task_id"] = args.task_id
-
 # read the dataset
 di = DatasetInterface(config)
 data_splits = di.get_openml_dataset()
@@ -40,7 +35,7 @@ config["y_test"] = data_splits[2][1]
 config["log_folder"] = config["log_folder"] + f"/task_id={config['dataset_task_id']}/"
 # create the path if it does not exist
 Path(config["log_folder"]).mkdir(parents=True, exist_ok=True)
-
+# save the numpy data splits
 np.save(config["log_folder"]+"x_train.npy", config["x_train"])
 np.save(config["log_folder"]+"y_train.npy", config["y_train"])
 np.save(config["log_folder"]+"x_val.npy", config["x_val"])

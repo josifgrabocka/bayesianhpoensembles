@@ -74,7 +74,7 @@ class HPOScikitLearn:
 
         # checkpoint the model
 
-        path = self.config["log_folder"] + f"hpo-seed={self.config['current_seed']}/"
+        path = self.config["log_folder"] + f"sampler={self.config['sampler']}/hpo-seed={self.config['current_seed']}/"
         # create the path if it does not exist
         Path(path).mkdir(parents=True, exist_ok=True)
 
