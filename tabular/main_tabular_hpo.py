@@ -7,6 +7,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--task_id', help='Parameter of the Top-K loss', type=int)
 parser.add_argument('--log_folder', help='where to save the hpo logs', type=str)
+parser.add_argument('--openml_data_folder', help='where to find the openml datasets', type=str)
 parser.add_argument('--sampler', help='random, hpo', type=str)
 args = parser.parse_args()
 
@@ -14,6 +15,7 @@ args = parser.parse_args()
 config = {}
 # the log folder
 config["log_folder"] = args.log_folder
+config["openml_data_folder"] = args.openml_data_folder
 # HPO config
 config["num_trials"] = 50
 config["num_seeds"] = 5
@@ -48,7 +50,5 @@ config["sampler"] = args.sampler
 hpoSL = HPOScikitLearn(config=config)
 for seed in range(config["num_seeds"]):
     config["current_seed"] = seed
-
-    print(config)
 
     hpoSL.run_hpo()

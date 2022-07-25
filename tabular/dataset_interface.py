@@ -46,9 +46,11 @@ class DatasetInterface:
     # read the openml dataset
     def get_openml_dataset(self, train_val_test_fractions=(0.6, 0.2, 0.2)):
 
-        task = openml.tasks.get_task(self.config["dataset_task_id"])
+        #task = openml.tasks.get_task(self.config["dataset_task_id"])
+        #X, y = task.get_X_and_y()
 
-        X, y = task.get_X_and_y()
+        X = np.load(self.config["openml_data_folder"] + "/" + str(self.config["dataset_task_id"]) + "_x.npy")
+        y = np.load(self.config["openml_data_folder"] + "/" + str(self.config["dataset_task_id"]) + "_y.npy")
 
         return self.divide_into_train_val_split(X, y, train_val_test_fractions=train_val_test_fractions)
 
@@ -69,6 +71,18 @@ class DatasetInterface:
 
         return self.divide_into_train_val_split(X, y, train_val_test_fractions=train_val_test_fractions)
 
+    def read_openml_suite(self):
+
+        task_ids = openml.study.get_suite('OpenML-CC18').tasks
+
+        for task_id in task_ids:
+            task = openml.tasks.get_task(task_id)
+            x, y = task.get_X_and_y()
+
+            np.save(str(task_id) + "_x.npy", x)
+            np.save(str(task_id) + "_y.npy", y)
 
 
 
+#di = DatasetInterface(config=None)
+#di.read_openml_suite()
