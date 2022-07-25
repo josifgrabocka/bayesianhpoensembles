@@ -21,5 +21,6 @@ config["results_folder"] = args.results_folder
 
 
 bhe = BayesianHyperEnsembles(config=config)
+bhe.run()
 
 

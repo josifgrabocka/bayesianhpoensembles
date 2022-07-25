@@ -36,16 +36,6 @@ class BayesianHyperEnsembles:
         # the test predictions for each model
         self.model_test_predictions = []
 
-        # load the data and the model checkpoints
-        self.load()
-
-        # compute posteriors
-        self.compute_model_predictions()
-        # aggregate the results
-        self.results_aggregation()
-
-        np.save(self.config['results_folder'] + f"results_task_id={self.config['task_id']}_sampler={self.config['sampler']}", self.results)
-
     # load the data and the checkpoints for all the different seeds
     def load(self):
 
@@ -167,4 +157,13 @@ class BayesianHyperEnsembles:
                 print(seed_idx, ensemble_size, results)
 
 
+    def run(self):
+        # load the data and the model checkpoints
+        self.load()
 
+        # compute posteriors
+        self.compute_model_predictions()
+        # aggregate the results
+        self.results_aggregation()
+
+        np.save(self.config['results_folder'] + f"results_task_id={self.config['task_id']}_sampler={self.config['sampler']}", self.results)
