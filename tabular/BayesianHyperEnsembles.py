@@ -44,7 +44,7 @@ class BayesianHyperEnsembles:
         # aggregate the results
         self.results_aggregation()
 
-        np.save(self.config['results_folder'] + f"task-id={self.config['task_id']}")
+        np.save(self.config['results_folder'] + f"results_task_id={self.config['task_id']}_sampler={self.config['sampler']}", self.results)
 
     # load the data and the checkpoints for all the different seeds
     def load(self):
