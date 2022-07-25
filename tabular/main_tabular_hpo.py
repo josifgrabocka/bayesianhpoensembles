@@ -48,4 +48,7 @@ config["sampler"] = args.sampler
 hpoSL = HPOScikitLearn(config=config)
 for seed in range(config["num_seeds"]):
     config["current_seed"] = seed
+
+    print(config)
+
     hpoSL.run_hpo()
