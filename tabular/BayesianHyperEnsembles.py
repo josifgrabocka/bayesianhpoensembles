@@ -5,6 +5,7 @@ from sklearn.metrics import balanced_accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 
+
 class BayesianHyperEnsembles:
 
     def __init__(self, config):
@@ -124,6 +125,7 @@ class BayesianHyperEnsembles:
     def results_aggregation(self):
 
         for seed_idx in range(self.num_seeds):
+
             num_models = len(self.model_val_accuracy[seed_idx])
 
             for ensemble_size in range(1, num_models+1):
@@ -154,7 +156,6 @@ class BayesianHyperEnsembles:
                     results.append(test_accuracy)
 
                 print(seed_idx, ensemble_size, results)
-
 
     def run(self):
         # load the data and the model checkpoints
