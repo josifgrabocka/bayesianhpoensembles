@@ -22,8 +22,6 @@ class BayesianHyperEnsembles:
 
         # the validation errors of each model
         self.model_val_accuracy = []
-        # the validation errors of each model
-        self.model_val_likelihood = []
 
         self.ohe_encoder = OneHotEncoder()
         self.set_labels = set()
@@ -74,15 +72,12 @@ class BayesianHyperEnsembles:
         for seed_models in self.models:
 
             seed_model_val_accuracy = []
-            seed_model_val_likelihood = []
             seed_model_test_predictions = []
 
 
             for model in seed_models:
                 # the validation accuracy
                 seed_model_val_accuracy.append(accuracy_score(self.y_val, model.predict(self.x_val)))
-                # the likelihood
-                seed_model_val_likelihood.append(np.exp(-log_loss(y_true=self.y_val, y_pred=model.predict_proba(self.x_val))))
                 # the test predictions
                 model_test_prediction = model.predict(self.x_test)
 
@@ -92,7 +87,6 @@ class BayesianHyperEnsembles:
                 seed_model_test_predictions.append(model_test_prediction.astype(int))
 
             self.model_val_accuracy.append(seed_model_val_accuracy)
-            self.model_val_likelihood.append(seed_model_val_likelihood)
             self.model_test_predictions.append(seed_model_test_predictions)
 
 
@@ -100,12 +94,12 @@ class BayesianHyperEnsembles:
         num_classes = len(self.set_labels)
         return np.eye(num_classes)[y]
 
-    def compute_posteriors(self, val_accuracies, val_likelihoods, posterior_type):
+    def compute_posteriors(self, val_accuracies, posterior_type):
 
         if posterior_type == "bayesian-likelihood":
             # compute the posteriors from the validation scores
-            posteriors = val_likelihoods
-            posteriors /= np.sum(val_likelihoods)
+            posteriors = val_accuracies
+            posteriors /= np.sum(val_accuracies)
 
         elif posterior_type == "bayesian-accuracy-rank":
             accuracies_series = pd.Series(val_accuracies)
@@ -135,14 +129,12 @@ class BayesianHyperEnsembles:
             for ensemble_size in range(1, num_models+1):
 
                 val_accuracies = self.model_val_accuracy[seed_idx][:ensemble_size]
-                val_likelihoods = self.model_val_likelihood[seed_idx][:ensemble_size]
 
                 results = []
 
                 for posterior_idx, posterior_type in enumerate(["best", "uniform", "bayesian-likelihood", "bayesian-accuracy-rank"]):
                     # compute the posteriors
                     posteriors = self.compute_posteriors(val_accuracies=val_accuracies,
-                                                         val_likelihoods=val_likelihoods,
                                                          posterior_type=posterior_type)
 
                     # the aggregated ensemble predictions, model averaging
