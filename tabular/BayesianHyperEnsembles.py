@@ -64,8 +64,8 @@ class BayesianHyperEnsembles:
             self.models.append(seed_models)
 
         # store all the aggregated results
-        num_posterior_baselines = 4
-        self.results = np.zeros((num_models, num_posterior_baselines, num_seeds))
+        self.num_posterior_baselines = 4
+        self.results = np.zeros((num_models, self.num_posterior_baselines, num_seeds))
 
     # compute the posteriors
     def compute_model_predictions(self):
@@ -155,7 +155,18 @@ class BayesianHyperEnsembles:
 
                     results.append(test_accuracy)
 
-                print(seed_idx, ensemble_size, results)
+        # print results
+        for ensemble_size in range(1, num_models + 1):
+            results =  []
+            for baseline_idx in range(self.num_posterior_baselines):
+                results.append(np.mean(self.results[ensemble_size - 1, baseline_idx]))
+            print(ensemble_size, results)
+
+
+
+
+
+
 
     def run(self):
         # load the data and the model checkpoints
