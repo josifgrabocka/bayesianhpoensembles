@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pickle
-from sklearn.metrics import accuracy_score, log_loss
+from sklearn.metrics import balanced_accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 
@@ -77,7 +77,7 @@ class BayesianHyperEnsembles:
 
             for model in seed_models:
                 # the validation accuracy
-                seed_model_val_accuracy.append(accuracy_score(self.y_val, model.predict(self.x_val)))
+                seed_model_val_accuracy.append(balanced_accuracy_score(self.y_val, model.predict(self.x_val)))
                 # the test predictions
                 model_test_prediction = model.predict(self.x_test)
 
@@ -147,7 +147,7 @@ class BayesianHyperEnsembles:
                         else:
                             aggregated_ensemble_prediction += posteriors[model_idx] * self.convert_to_one_hot(self.model_test_predictions[seed_idx][model_idx])
 
-                    test_accuracy = accuracy_score(y_true=self.y_test, y_pred=np.argmax(aggregated_ensemble_prediction, axis=-1))
+                    test_accuracy = balanced_accuracy_score(y_true=self.y_test, y_pred=np.argmax(aggregated_ensemble_prediction, axis=-1))
 
                     self.results[ensemble_size - 1, posterior_idx, seed_idx] = test_accuracy
 
