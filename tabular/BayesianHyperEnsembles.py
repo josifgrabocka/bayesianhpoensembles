@@ -17,20 +17,13 @@ class BayesianHyperEnsembles:
         self.y_test = None
         self.num_seeds = -1
 
-        # load the checkpoints
+        # checkpoints
         self.models = []
 
         # the validation errors of each model
         self.model_val_accuracy = []
         # the validation errors of each model
         self.model_val_likelihood = []
-
-        # the model posteriors
-        self.model_posteriors_ranks = []
-
-        # the model posteriors softmax
-        self.alpha = 10
-        self.model_posteriors_softmax = []
 
         self.ohe_encoder = OneHotEncoder()
         self.set_labels = set()
@@ -109,32 +102,29 @@ class BayesianHyperEnsembles:
 
     def compute_posteriors(self, val_accuracies, val_likelihoods, posterior_type):
 
-        K = float(len(val_accuracies))
-
         if posterior_type == "bayesian-likelihood":
             # compute the posteriors from the validation scores
-            posterior = val_likelihoods
-            posterior /= np.sum(val_likelihoods)
+            posteriors = val_likelihoods
+            posteriors /= np.sum(val_likelihoods)
 
         elif posterior_type == "bayesian-accuracy-rank":
-            # compute the posteriors from the validation scores
             accuracies_series = pd.Series(val_accuracies)
             accuracies_ranks = accuracies_series.rank().to_numpy()
-            posterior = (2.0 * accuracies_ranks) / (K * (K + 1))
+            K = float(len(val_accuracies))
+            posteriors = (2.0 * accuracies_ranks) / (K * (K + 1))
 
         elif posterior_type == "uniform":
-            posterior = np.ones_like(val_accuracies) / float(len(val_accuracies))
+            posteriors = np.ones_like(val_accuracies) / float(len(val_accuracies))
 
         elif posterior_type == "best":
-            # set one only for the
-            posterior = np.zeros_like(val_accuracies)
+            posteriors = np.zeros_like(val_accuracies)
             best_model_idx = np.argmax(val_accuracies, axis=-1)
-            posterior[best_model_idx] = 1.0
+            posteriors[best_model_idx] = 1.0
 
         else:
             raise ValueError("Unknown posterior type " + posterior_type)
 
-        return posterior
+        return posteriors
 
     # create the bayesian ensemble
     def results_aggregation(self):
@@ -182,5 +172,6 @@ class BayesianHyperEnsembles:
         self.compute_model_predictions()
         # aggregate the results
         self.results_aggregation()
-
+        
+        # save the results to a numpy tensor
         np.save(self.config['results_folder'] + f"results_task_id={self.config['task_id']}_sampler={self.config['sampler']}", self.results)

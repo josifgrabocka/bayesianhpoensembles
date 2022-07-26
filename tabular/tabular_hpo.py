@@ -29,29 +29,24 @@ class HPOScikitLearn:
             svm_c = trial.suggest_float("svm_c", 1e0, 1e2, log=True)
             svm_kernel = trial.suggest_categorical("svm_kernel", ["rbf", "poly"])
             svm_degree = trial.suggest_int("svm_degree", 1, 5)
-
             classifier = SVC(C=svm_c, kernel=svm_kernel, degree=svm_degree)
 
         elif classifier_name == "RandomForest":
             rf_num_estimators = trial.suggest_int("rf_num_estimators", 16, 128, log=True)
-
             classifier = RandomForestClassifier(n_estimators=rf_num_estimators)
 
         elif classifier_name == "GBDT":
             gbdt_num_estimators = trial.suggest_int("gbdt_num_estimators", 100, 200)
             gbdt_learning_rate = trial.suggest_float("gbdt_learning_rate", 1e-2, 1e-1, log=True)
             gbdt_max_depth = trial.suggest_int("gbdt_max_depth", 3, 5)
-
             classifier = GradientBoostingClassifier(n_estimators=gbdt_num_estimators, learning_rate=gbdt_learning_rate,
                                                     max_depth=gbdt_max_depth)
 
         elif classifier_name == "NearestNeighbors":
             nn_num_neighbors = trial.suggest_int("nn_num_neighbors", 1, 10)
-
             classifier = KNeighborsClassifier(n_neighbors=nn_num_neighbors)
 
         elif classifier_name == "MLP":
-
             mlp_learning_rate_init = trial.suggest_float("mlp_learning_rate", 1e-3, 1e-2, log=True)
             mlp_activation = trial.suggest_categorical("mlp_activation", ['logistic', 'tanh', 'relu'])
             mlp_l2_penalty = trial.suggest_float("mlp_l2_penalty", 1e-5, 1e-3, log=True)
@@ -73,7 +68,6 @@ class HPOScikitLearn:
         classifier.fit(x_train, y_train)
 
         # checkpoint the model
-
         path = self.config["log_folder"] + f"sampler={self.config['sampler']}/hpo-seed={self.config['current_seed']}/"
         # create the path if it does not exist
         Path(path).mkdir(parents=True, exist_ok=True)
@@ -99,5 +93,3 @@ class HPOScikitLearn:
         study.optimize(self.evaluate, n_trials=self.config['num_trials'])
 
         print(study.best_params)
-
-

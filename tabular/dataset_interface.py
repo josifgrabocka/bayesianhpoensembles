@@ -49,6 +49,7 @@ class DatasetInterface:
         #task = openml.tasks.get_task(self.config["dataset_task_id"])
         #X, y = task.get_X_and_y()
 
+        # read the data from files, because the cluster does not have internet access to read the data from OpenML
         X = np.load(self.config["openml_data_folder"] + "/" + str(self.config["dataset_task_id"]) + "_x.npy")
         y = np.load(self.config["openml_data_folder"] + "/" + str(self.config["dataset_task_id"]) + "_y.npy")
 
@@ -81,8 +82,3 @@ class DatasetInterface:
 
             np.save(str(task_id) + "_x.npy", x)
             np.save(str(task_id) + "_y.npy", y)
-
-
-
-#di = DatasetInterface(config=None)
-#di.read_openml_suite()
