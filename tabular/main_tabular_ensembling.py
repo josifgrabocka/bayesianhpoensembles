@@ -9,7 +9,6 @@ parser.add_argument('--results_folder', help='Where to save the baseline results
 parser.add_argument('--sampler', help='random, hpo', type=str)
 args = parser.parse_args()
 
-
 # define the configuration
 config = {}
 

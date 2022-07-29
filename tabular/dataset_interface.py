@@ -1,6 +1,7 @@
 import sklearn
 import sklearn.model_selection
 import sklearn.datasets
+import sklearn.impute
 import numpy as np
 import openml
 
@@ -52,6 +53,9 @@ class DatasetInterface:
         # read the data from files, because the cluster does not have internet access to read the data from OpenML
         X = np.load(self.config["openml_data_folder"] + "/" + str(self.config["dataset_task_id"]) + "_x.npy")
         y = np.load(self.config["openml_data_folder"] + "/" + str(self.config["dataset_task_id"]) + "_y.npy")
+
+        imputer = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy='mean')
+        X = imputer.fit_transform(X)
 
         return self.divide_into_train_val_split(X, y, train_val_test_fractions=train_val_test_fractions)
 
