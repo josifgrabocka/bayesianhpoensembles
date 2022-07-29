@@ -152,8 +152,8 @@ class BayesianHyperEnsembles:
                         else:
                             aggregated_ensemble_prediction += posteriors[model_idx] * self.model_test_predictions[seed_idx][model_idx]
 
-                    print('-')
-                    test_accuracy = accuracy_score(y_true=self.y_test, y_pred=np.argmax(aggregated_ensemble_prediction, axis=-1))
+                    #test_accuracy = accuracy_score(y_true=self.y_test, y_pred=np.argmax(aggregated_ensemble_prediction, axis=-1))
+                    test_accuracy = np.exp(-log_loss(y_true=self.y_test, y_pred=aggregated_ensemble_prediction))
 
                     self.results[ensemble_size - 1, posterior_idx, seed_idx] = test_accuracy
 
