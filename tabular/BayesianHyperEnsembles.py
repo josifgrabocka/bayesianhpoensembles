@@ -167,7 +167,8 @@ class BayesianHyperEnsembles:
             results =  []
             for baseline_idx in range(self.num_posterior_baselines):
                 results.append(np.mean(self.results[ensemble_size - 1, baseline_idx]))
-            print(ensemble_size, results)
+
+            print(self.config['task_id'], ensemble_size, results)
 
 
     def run(self):
