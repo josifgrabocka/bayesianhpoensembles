@@ -30,7 +30,7 @@ class BayesianHyperEnsembles:
         # the test predictions for each model
         self.model_test_predictions = []
 
-        self.alpha = 3.0
+        self.alpha = 10.0
 
     # load the data and the checkpoints for all the different seeds
     def load(self):
