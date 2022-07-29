@@ -64,7 +64,7 @@ class BayesianHyperEnsembles:
             self.models.append(seed_models)
 
         # store all the aggregated results
-        self.num_posterior_baselines = 4
+        self.num_posterior_baselines = 5
         self.results = np.zeros((num_models, self.num_posterior_baselines, num_seeds))
 
     # compute the posteriors
@@ -102,7 +102,14 @@ class BayesianHyperEnsembles:
             posteriors = val_accuracies
             posteriors /= np.sum(val_accuracies)
 
-        elif posterior_type == "bayesian-accuracy-rank":
+        elif posterior_type == "bayesian-linear":
+            if len(val_accuracies) > 1:
+                posteriors = val_accuracies - np.min(val_accuracies)
+                posteriors /= np.sum(val_accuracies - np.min(val_accuracies))
+            else:
+                posteriors = np.array([1.0])
+
+        elif posterior_type == "bayesian-rank":
             accuracies_series = pd.Series(val_accuracies)
             accuracies_ranks = accuracies_series.rank().to_numpy()
             K = float(len(val_accuracies))
@@ -134,7 +141,7 @@ class BayesianHyperEnsembles:
 
                 results = []
 
-                for posterior_idx, posterior_type in enumerate(["best", "uniform", "bayesian-likelihood", "bayesian-accuracy-rank"]):
+                for posterior_idx, posterior_type in enumerate(["best", "uniform", "bayesian-likelihood", "bayesian-rank", "bayesian-linear"]):
                     # compute the posteriors
                     posteriors = self.compute_posteriors(val_accuracies=val_accuracies,
                                                          posterior_type=posterior_type)
