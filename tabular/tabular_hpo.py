@@ -3,7 +3,7 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import accuracy_score
 import pickle
 from pathlib import Path
 
@@ -29,7 +29,7 @@ class HPOScikitLearn:
             svm_c = trial.suggest_float("svm_c", 1e0, 1e2, log=True)
             svm_kernel = trial.suggest_categorical("svm_kernel", ["rbf", "poly"])
             svm_degree = trial.suggest_int("svm_degree", 1, 5)
-            classifier = SVC(C=svm_c, kernel=svm_kernel, degree=svm_degree)
+            classifier = SVC(C=svm_c, kernel=svm_kernel, degree=svm_degree, probability=True)
 
         elif classifier_name == "RandomForest":
             rf_num_estimators = trial.suggest_int("rf_num_estimators", 16, 128, log=True)
@@ -54,7 +54,7 @@ class HPOScikitLearn:
             pickle.dump(classifier, fout)
 
         # evaluate on the validation set
-        return 1.0 - balanced_accuracy_score(classifier.predict(x_val), y_val)
+        return 1.0 - accuracy_score(classifier.predict(x_val), y_val)
 
 
     def run_hpo(self):
