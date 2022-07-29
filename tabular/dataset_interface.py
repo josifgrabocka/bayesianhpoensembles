@@ -12,7 +12,7 @@ class DatasetInterface:
         self.config = config
 
 
-    def divide_into_train_val_split(self, X, y, train_val_test_fractions=(0.6, 0.2, 0.2)):
+    def divide_into_train_val_split(self, X, y, train_val_test_fractions=(0.8, 0.1, 0.1)):
 
         test_fraction = train_val_test_fractions[2]
 
