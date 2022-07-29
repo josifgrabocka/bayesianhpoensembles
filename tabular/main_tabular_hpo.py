@@ -17,7 +17,7 @@ config = {}
 config["log_folder"] = args.log_folder
 config["openml_data_folder"] = args.openml_data_folder
 # HPO config
-config["num_trials"] = 30
+config["num_trials"] = 50
 config["num_seeds"] = 1
 # dataset name
 config["dataset_task_id"] = args.task_id
