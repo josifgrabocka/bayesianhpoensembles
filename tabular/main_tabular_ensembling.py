@@ -1,4 +1,4 @@
-from BayesianHyperEnsembles import BayesianHyperEnsembles
+from tabular.BayesianHyperEnsembles import BayesianHyperEnsembles
 
 import argparse
 
