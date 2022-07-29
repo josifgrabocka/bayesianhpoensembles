@@ -163,11 +163,6 @@ class BayesianHyperEnsembles:
             print(ensemble_size, results)
 
 
-
-
-
-
-
     def run(self):
         # load the data and the model checkpoints
         self.load()
