@@ -30,6 +30,8 @@ class BayesianHyperEnsembles:
         # the test predictions for each model
         self.model_test_predictions = []
 
+        self.alpha = 2.0
+
     # load the data and the checkpoints for all the different seeds
     def load(self):
 
@@ -100,8 +102,8 @@ class BayesianHyperEnsembles:
 
         elif posterior_type == "bayesian-linear":
             if len(val_likelihoods) > 1:
-                posteriors = val_likelihoods - np.min(val_likelihoods)
-                posteriors /= np.sum(val_likelihoods - np.min(val_likelihoods))
+                posteriors = np.power(val_likelihoods - np.min(val_likelihoods), self.alpha)
+                posteriors /= np.sum(np.power(val_likelihoods - np.min(val_likelihoods), self.alpha))
             else:
                 posteriors = np.array([1.0])
 
