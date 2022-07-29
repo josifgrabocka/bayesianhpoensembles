@@ -30,7 +30,7 @@ class BayesianHyperEnsembles:
         # the test predictions for each model
         self.model_test_predictions = []
 
-        self.alpha = 3.0
+        self.alpha = 5.0
 
     # load the data and the checkpoints for all the different seeds
     def load(self):
@@ -100,18 +100,17 @@ class BayesianHyperEnsembles:
             posteriors = val_likelihoods
             posteriors /= np.sum(val_likelihoods)
 
-        elif posterior_type == "bayesian-linear":
+        elif posterior_type == "bayesian-scaled":
             if len(val_likelihoods) > 1:
-                posteriors = np.power(val_likelihoods - np.min(val_likelihoods), self.alpha)
-                posteriors /= np.sum(np.power(val_likelihoods - np.min(val_likelihoods), self.alpha))
+                posteriors = val_likelihoods - np.min(val_likelihoods)
+                posteriors /= np.sum(val_likelihoods - np.min(val_likelihoods))
             else:
                 posteriors = np.array([1.0])
 
         elif posterior_type == "bayesian-rank":
             accuracies_series = pd.Series(val_likelihoods)
-            accuracies_ranks = accuracies_series.rank().to_numpy()
-            K = float(len(val_likelihoods))
-            posteriors = (2.0 * accuracies_ranks) / (K * (K + 1))
+            accuracies_ranks = np.power(accuracies_series.rank().to_numpy(), self.alpha)
+            posteriors = accuracies_ranks / np.sum(accuracies_ranks)
 
         elif posterior_type == "uniform":
             posteriors = np.ones_like(val_likelihoods) / float(len(val_likelihoods))
@@ -139,7 +138,7 @@ class BayesianHyperEnsembles:
 
                 results = []
 
-                for posterior_idx, posterior_type in enumerate(["best", "uniform", "bayesian-likelihood", "bayesian-rank", "bayesian-linear"]):
+                for posterior_idx, posterior_type in enumerate(["best", "uniform", "bayesian-likelihood", "bayesian-rank", "bayesian-scaled"]):
                     # compute the posteriors
                     posteriors = self.compute_posteriors(val_likelihoods=val_accuracies,
                                                          posterior_type=posterior_type)
