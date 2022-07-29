@@ -30,7 +30,7 @@ class BayesianHyperEnsembles:
         # the test predictions for each model
         self.model_test_predictions = []
 
-        self.alpha = 10.0
+        self.alpha = 3.0
 
     # load the data and the checkpoints for all the different seeds
     def load(self):
@@ -153,7 +153,9 @@ class BayesianHyperEnsembles:
                         else:
                             aggregated_ensemble_prediction += posteriors[model_idx] * self.model_test_predictions[seed_idx][model_idx]
 
-                    test_likelihood = np.exp(-log_loss(y_true=self.y_test, y_pred=aggregated_ensemble_prediction))
+                    #test_likelihood = np.exp(-log_loss(y_true=self.y_test, y_pred=aggregated_ensemble_prediction))
+
+                    test_likelihood = accuracy_score (y_true=self.y_test, y_pred=np.argmax(aggregated_ensemble_prediction, axis=-1))
 
                     self.results[ensemble_size - 1, posterior_idx, seed_idx] = test_likelihood
 
