@@ -15,7 +15,7 @@ class HPOScikitLearn:
 
     def evaluate(self, trial):
 
-        classifier_name = trial.suggest_categorical("classifier", ["SVM", "RandomForest", "GBDT", "MLP"])
+        classifier_name = trial.suggest_categorical("classifier", ["SVM", "RandomForest", "GBDT"])
 
         # the data
         x_train = self.config["x_train"]
@@ -41,28 +41,6 @@ class HPOScikitLearn:
             gbdt_max_depth = trial.suggest_int("gbdt_max_depth", 3, 5)
             classifier = GradientBoostingClassifier(n_estimators=gbdt_num_estimators, learning_rate=gbdt_learning_rate,
                                                     max_depth=gbdt_max_depth)
-
-        elif classifier_name == "NearestNeighbors":
-            nn_num_neighbors = trial.suggest_int("nn_num_neighbors", 1, 10)
-            classifier = KNeighborsClassifier(n_neighbors=nn_num_neighbors)
-
-        elif classifier_name == "MLP":
-            mlp_learning_rate_init = trial.suggest_float("mlp_learning_rate", 1e-3, 1e-2, log=True)
-            mlp_activation = trial.suggest_categorical("mlp_activation", ['logistic', 'tanh', 'relu'])
-            mlp_l2_penalty = trial.suggest_float("mlp_l2_penalty", 1e-5, 1e-3, log=True)
-            mlp_num_layers = trial.suggest_int("mlp_num_layers", 2, 6)
-            mlp_neurons_per_layer = trial.suggest_int("mlp_neurons_per_layer", 8, 64, log=True)
-            mlp_max_iter = trial.suggest_int("mlp_max_iter", 500, 2000, log=True)
-
-
-            hidden_layer_sizes = []
-            for _ in range(mlp_num_layers):
-                hidden_layer_sizes.append(mlp_neurons_per_layer)
-
-            classifier = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=mlp_learning_rate_init,
-                                       activation=mlp_activation, alpha=mlp_l2_penalty,
-                                       max_iter=mlp_max_iter,
-                                       n_iter_no_change=mlp_max_iter)
 
         # fit the classifier
         classifier.fit(x_train, y_train)
