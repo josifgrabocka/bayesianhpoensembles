@@ -23,7 +23,10 @@ config["num_seeds"] = 1
 # dataset name
 config["dataset_task_id"] = args.task_id
 # use bootstrap
-config["bootstrap"] = args.bootstrap
+if args.bootstrap:
+    config["bootstrap"] = args.bootstrap
+else:
+    config["bootstrap"] = "no"
 # read the dataset
 di = DatasetInterface(config)
 data_splits = di.get_openml_dataset()

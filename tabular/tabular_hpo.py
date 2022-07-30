@@ -49,6 +49,8 @@ class HPOScikitLearn:
         if self.config["bootstrap"] == "yes":
             x_train_boot, _, y_train_boot, _ = train_test_split(x_train, y_train, train_size=self.bootstrap_ratio)
             classifier.fit(x_train_boot, y_train_boot)
+        else:
+            classifier.fit(x_train, y_train)
 
         # checkpoint the model
         path = self.config["log_folder"] + f"sampler={self.config['sampler']}/hpo-seed={self.config['current_seed']}/"
