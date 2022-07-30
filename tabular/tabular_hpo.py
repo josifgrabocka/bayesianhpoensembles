@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 import pickle
 from pathlib import Path
 
@@ -12,6 +13,7 @@ class HPOScikitLearn:
     def __init__(self, config):
 
         self.config = config
+        self.bootstrap_ratio = 0.6
 
     def evaluate(self, trial):
 
@@ -42,8 +44,11 @@ class HPOScikitLearn:
             classifier = GradientBoostingClassifier(n_estimators=gbdt_num_estimators, learning_rate=gbdt_learning_rate,
                                                     max_depth=gbdt_max_depth)
 
+
         # fit the classifier
-        classifier.fit(x_train, y_train)
+        if self.config["bootstrap"] == "yes":
+            x_train_boot, _, y_train_boot, _ = train_test_split(x_train, y_train, train_size=self.bootstrap_ratio)
+            classifier.fit(x_train_boot, y_train_boot)
 
         # checkpoint the model
         path = self.config["log_folder"] + f"sampler={self.config['sampler']}/hpo-seed={self.config['current_seed']}/"
