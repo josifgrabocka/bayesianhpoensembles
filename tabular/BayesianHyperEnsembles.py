@@ -30,7 +30,7 @@ class BayesianHyperEnsembles:
         # the test predictions for each model
         self.model_test_predictions = []
 
-        self.alpha = 10.0
+        self.alpha = 0.1
 
     # load the data and the checkpoints for all the different seeds
     def load(self):
@@ -109,7 +109,7 @@ class BayesianHyperEnsembles:
 
         elif posterior_type == "bayesian-rank":
             accuracies_series = pd.Series(val_likelihoods)
-            accuracies_ranks_exp = np.exp(accuracies_series.rank().to_numpy())
+            accuracies_ranks_exp = np.exp(self.alpha*accuracies_series.rank().to_numpy())
             posteriors = accuracies_ranks_exp / np.sum(accuracies_ranks_exp)
 
         elif posterior_type == "uniform":
