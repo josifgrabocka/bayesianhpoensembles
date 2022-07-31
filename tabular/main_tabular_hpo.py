@@ -19,7 +19,7 @@ config["log_folder"] = args.log_folder
 config["openml_data_folder"] = args.openml_data_folder
 # HPO config
 config["num_trials"] = 100
-config["num_seeds"] = 1
+config["num_seeds"] = 10
 # dataset name
 config["dataset_task_id"] = args.task_id
 # use bootstrap
