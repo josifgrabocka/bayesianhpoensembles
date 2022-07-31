@@ -30,7 +30,7 @@ class BayesianHyperEnsembles:
         # the test predictions for each model
         self.model_test_predictions = []
 
-        self.alpha = 0.5
+        self.alpha = 1.0
 
     # load the data and the checkpoints for all the different seeds
     def load(self):
@@ -46,8 +46,6 @@ class BayesianHyperEnsembles:
         self.x_test = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/x_test.npy')
         self.y_test = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/y_test.npy').astype(int)
 
-
-        num_seeds = len(seed_folders)
 
         for seed_folder in seed_folders:
             seed_folder_path = path + "/" + seed_folder
@@ -67,7 +65,7 @@ class BayesianHyperEnsembles:
 
         # store all the aggregated results
         self.num_posterior_baselines = 5
-        self.results = np.zeros((num_models, self.num_posterior_baselines, num_seeds))
+        self.results = np.zeros((num_models, self.num_posterior_baselines, self.num_seeds))
 
     # compute the posteriors
     def compute_model_predictions(self):
