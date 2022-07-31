@@ -29,7 +29,7 @@ class DatasetInterface:
         return (x_train, y_train), (x_val, y_val), (x_test, y_test)
 
 
-    def get_toy_sklearn_dataset(self, train_val_test_fractions=(0.6, 0.2, 0.2)):
+    def get_toy_sklearn_dataset(self, train_val_test_fractions=(0.8, 0.1, 0.1)):
 
         X, y = None, None
 
@@ -45,7 +45,7 @@ class DatasetInterface:
         return self.divide_into_train_val_split(X, y, train_val_test_fractions=train_val_test_fractions)
 
     # read the openml dataset
-    def get_openml_dataset(self, train_val_test_fractions=(0.6, 0.2, 0.2)):
+    def get_openml_dataset(self, train_val_test_fractions=(0.8, 0.1, 0.1)):
 
         #task = openml.tasks.get_task(self.config["dataset_task_id"])
         #X, y = task.get_X_and_y()
@@ -60,7 +60,7 @@ class DatasetInterface:
         return self.divide_into_train_val_split(X, y, train_val_test_fractions=train_val_test_fractions)
 
 
-    def get_local_collection(self, train_val_test_fractions=(0.6, 0.2, 0.2)):
+    def get_local_collection(self, train_val_test_fractions=(0.8, 0.1, 0.1)):
 
         X, y = None, None
 
