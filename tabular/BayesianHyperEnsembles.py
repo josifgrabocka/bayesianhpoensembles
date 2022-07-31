@@ -107,9 +107,6 @@ class BayesianHyperEnsembles:
 
         elif posterior_type == "bayesian-rank":
             accuracies_series = pd.Series(val_likelihoods)
-            #accuracies_ranks_exp = np.exp(self.alpha*accuracies_series.rank().to_numpy())
-            #posteriors = accuracies_ranks_exp / np.sum(accuracies_ranks_exp)
-
             accuracies_ranks = accuracies_series.rank().to_numpy()
             posteriors = accuracies_ranks / np.sum(accuracies_ranks)
 
