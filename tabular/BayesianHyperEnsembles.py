@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pickle
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 
@@ -39,11 +39,12 @@ class BayesianHyperEnsembles:
         self.num_seeds = len(seed_folders)
 
         # numpy files for the data
+        self.x_train = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/x_train.npy')
+        self.y_train = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/y_train.npy').astype(int)
         self.x_val = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/x_val.npy')
         self.y_val = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/y_val.npy').astype(int)
         self.x_test = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/x_test.npy')
         self.y_test = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/y_test.npy').astype(int)
-
 
         num_seeds = len(seed_folders)
 
@@ -78,7 +79,7 @@ class BayesianHyperEnsembles:
 
             for model in seed_models:
                 # the validation accuracy
-                seed_model_val_accuracy.append(balanced_accuracy_score(self.y_val, model.predict(self.x_val)))
+                seed_model_val_accuracy.append(accuracy_score(self.y_val, model.predict(self.x_val)))
                 # the test predictions
                 model_test_prediction = model.predict(self.x_test)
 
@@ -89,11 +90,6 @@ class BayesianHyperEnsembles:
 
             self.model_val_accuracy.append(seed_model_val_accuracy)
             self.model_test_predictions.append(seed_model_test_predictions)
-
-
-    def convert_to_one_hot(self, y):
-        num_classes = len(self.set_labels)
-        return np.eye(num_classes)[y]
 
     def compute_posteriors(self, val_accuracies, posterior_type):
 
@@ -156,7 +152,7 @@ class BayesianHyperEnsembles:
                         else:
                             aggregated_ensemble_prediction += posteriors[model_idx] * self.convert_to_one_hot(self.model_test_predictions[seed_idx][model_idx])
 
-                    test_accuracy = balanced_accuracy_score(y_true=self.y_test, y_pred=np.argmax(aggregated_ensemble_prediction, axis=-1))
+                    test_accuracy = accuracy_score(y_true=self.y_test, y_pred=np.argmax(aggregated_ensemble_prediction, axis=-1))
 
                     self.results[ensemble_size - 1, posterior_idx, seed_idx] = test_accuracy
 

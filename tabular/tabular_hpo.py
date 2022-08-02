@@ -3,7 +3,7 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import accuracy_score
 import pickle
 from pathlib import Path
 
