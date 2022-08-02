@@ -9,6 +9,7 @@ parser.add_argument('--task_id', help='Parameter of the Top-K loss', type=int)
 parser.add_argument('--log_folder', help='where to save the hpo logs', type=str)
 parser.add_argument('--openml_data_folder', help='where to find the openml datasets', type=str)
 parser.add_argument('--sampler', help='random, hpo', type=str)
+parser.add_argument('--bootstrap', help='yes, no', type=str)
 args = parser.parse_args()
 
 # define the configuration
@@ -17,10 +18,15 @@ config = {}
 config["log_folder"] = args.log_folder
 config["openml_data_folder"] = args.openml_data_folder
 # HPO config
-config["num_trials"] = 50
-config["num_seeds"] = 1
+config["num_trials"] = 100
+config["num_seeds"] = 10
 # dataset name
 config["dataset_task_id"] = args.task_id
+# use bootstrap
+if args.bootstrap:
+    config["bootstrap"] = args.bootstrap
+else:
+    config["bootstrap"] = "no"
 # read the dataset
 di = DatasetInterface(config)
 data_splits = di.get_openml_dataset()
