@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pickle
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, log_loss
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 
@@ -43,6 +43,10 @@ class BayesianHyperEnsembles:
         self.y_train = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/y_train.npy').astype(int)
         self.x_val = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/x_val.npy')
         self.y_val = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/y_val.npy').astype(int)
+
+        self.x_train_val = np.concatenate((self.x_train, self.x_val), axis=0)
+        self.y_train_val = np.concatenate((self.y_train, self.y_val), axis=0)
+
         self.x_test = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/x_test.npy')
         self.y_test = np.load(self.config["log_folder"] + "/" + f'task_id={self.config["task_id"]}/y_test.npy').astype(int)
 
@@ -79,7 +83,7 @@ class BayesianHyperEnsembles:
 
             for model in seed_models:
                 # the validation accuracy
-                seed_model_val_accuracy.append(accuracy_score(self.y_val, model.predict(self.x_val)))
+                seed_model_val_accuracy.append(np.exp(-log_loss(self.y_train_val, model.predict_proba(self.x_train_val))))
                 # the test predictions
                 model_test_prediction = model.predict(self.x_test)
 

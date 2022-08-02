@@ -54,7 +54,7 @@ class HPOScikitLearn:
             pickle.dump(classifier, fout)
 
         # evaluate on the validation set
-        return 1.0 - balanced_accuracy_score(classifier.predict(x_val), y_val)
+        return 1.0 - accuracy_score(classifier.predict(x_val), y_val)
 
 
     def run_hpo(self):
