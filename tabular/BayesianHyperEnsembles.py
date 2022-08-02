@@ -86,7 +86,7 @@ class BayesianHyperEnsembles:
             seed_model_test_predictions = []
 
             for model in seed_models:
-                seed_model_likelihoods.append(np.exp(-log_loss(self.y_train_val, model.predict_proba(self.x_train_val))))
+                seed_model_likelihoods.append(np.exp(-log_loss(self.y_val, model.predict_proba(self.x_val))))
                 seed_model_test_predictions.append(model.predict_proba(self.x_test))
                 seed_model_val_predictions.append(model.predict(self.x_val))
 
