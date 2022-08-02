@@ -29,7 +29,7 @@ class HPOScikitLearn:
             svm_c = trial.suggest_float("svm_c", 1e0, 1e2, log=True)
             svm_kernel = trial.suggest_categorical("svm_kernel", ["rbf", "poly"])
             svm_degree = trial.suggest_int("svm_degree", 1, 5)
-            classifier = SVC(C=svm_c, kernel=svm_kernel, degree=svm_degree)
+            classifier = SVC(C=svm_c, kernel=svm_kernel, degree=svm_degree, probability=True)
 
         elif classifier_name == "RandomForest":
             rf_num_estimators = trial.suggest_int("rf_num_estimators", 16, 128, log=True)
@@ -55,7 +55,6 @@ class HPOScikitLearn:
 
         # evaluate on the validation set
         return 1.0 - accuracy_score(classifier.predict(x_val), y_val)
-
 
     def run_hpo(self):
 
