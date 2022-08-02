@@ -80,17 +80,13 @@ class BayesianHyperEnsembles:
             seed_model_likelihoods = []
             seed_model_test_predictions = []
 
-
             for model in seed_models:
                 # the validation accuracy
                 seed_model_likelihoods.append(np.exp(-log_loss(self.y_train_val, model.predict_proba(self.x_train_val))))
                 # the test predictions
-                model_test_prediction = model.predict(self.x_test)
+                model_test_prediction = model.predict_proba(self.x_test)
 
-                for y in list(model_test_prediction.flat):
-                    self.set_labels.add(y)
-
-                seed_model_test_predictions.append(model_test_prediction.astype(int))
+                seed_model_test_predictions.append(model_test_prediction)
 
             self.model_likelihoods.append(seed_model_likelihoods)
             self.model_test_predictions.append(seed_model_test_predictions)
@@ -137,14 +133,13 @@ class BayesianHyperEnsembles:
 
             for ensemble_size in range(1, num_models+1):
 
-                val_accuracies = self.model_likelihoods[seed_idx][:ensemble_size]
+                model_likelihoods = self.model_likelihoods[seed_idx][:ensemble_size]
 
                 results = []
 
                 for posterior_idx, posterior_type in enumerate(["best", "uniform", "bayesian-likelihood", "bayesian-rank", "bayesian-linear"]):
                     # compute the posteriors
-                    posteriors = self.compute_posteriors(model_likelihoods=val_accuracies,
-                                                         posterior_type=posterior_type)
+                    posteriors = self.compute_posteriors(model_likelihoods=model_likelihoods, posterior_type=posterior_type)
 
                     # the aggregated ensemble predictions, model averaging
                     aggregated_ensemble_prediction = None
@@ -156,7 +151,8 @@ class BayesianHyperEnsembles:
                         else:
                             aggregated_ensemble_prediction += posteriors[model_idx] * self.model_test_predictions[seed_idx][model_idx]
 
-                    test_accuracy = accuracy_score(y_true=self.y_test, y_pred=np.argmax(aggregated_ensemble_prediction, axis=-1))
+                    y_test_pred_hard = np.argmax(aggregated_ensemble_prediction, axis=-1)
+                    test_accuracy = accuracy_score(y_true=self.y_test, y_pred=y_test_pred_hard)
 
                     self.results[ensemble_size - 1, posterior_idx, seed_idx] = test_accuracy
 
