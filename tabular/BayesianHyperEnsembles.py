@@ -18,6 +18,8 @@ class BayesianHyperEnsembles:
         self.y_test = None
         self.num_seeds = -1
 
+        self.alpha = 0.3
+
         # checkpoints
         self.models = []
 
@@ -84,7 +86,7 @@ class BayesianHyperEnsembles:
             seed_model_test_predictions = []
 
             for model in seed_models:
-                seed_model_likelihoods.append(accuracy_score(self.y_val, model.predict(self.x_val)))
+                seed_model_likelihoods.append(np.exp(-log_loss(self.y_train_val, model.predict_proba(self.x_train_val))))
                 seed_model_test_predictions.append(model.predict_proba(self.x_test))
                 seed_model_val_predictions.append(model.predict(self.x_val))
 
@@ -109,9 +111,10 @@ class BayesianHyperEnsembles:
 
         elif posterior_type == "bayesian-rank":
             accuracies_series = pd.Series(model_likelihoods)
-            accuracies_ranks = accuracies_series.rank().to_numpy()
-            K = float(len(model_likelihoods))
-            posteriors = (2.0 * accuracies_ranks) / (K * (K + 1))
+            ranks = accuracies_series.rank().to_numpy()
+
+            scores = np.exp(self.alpha*ranks)
+            posteriors = scores / np.sum(scores)
 
         elif posterior_type == "uniform":
             posteriors = np.ones_like(model_likelihoods) / float(len(model_likelihoods))
@@ -156,13 +159,12 @@ class BayesianHyperEnsembles:
                         else:
                             aggregated_ensemble_prediction += posteriors[model_idx] * self.model_test_predictions[seed_idx][model_idx]
 
-                    #y_test_pred_hard = np.argmax(aggregated_ensemble_prediction, axis=-1)
-                    #test_accuracy = accuracy_score(y_true=self.y_test, y_pred=y_test_pred_hard)
-                    #self.results[ensemble_size - 1, posterior_idx, seed_idx] = test_accuracy
+                    y_test_pred_hard = np.argmax(aggregated_ensemble_prediction, axis=-1)
+                    test_accuracy = accuracy_score(y_true=self.y_test, y_pred=y_test_pred_hard)
+                    self.results[ensemble_size - 1, posterior_idx, seed_idx] = test_accuracy
 
-                    test_likelihood = self.results[ensemble_size - 1, posterior_idx, seed_idx] = np.exp(-log_loss(y_true=self.y_test, y_pred=aggregated_ensemble_prediction))
-
-                    results.append(test_likelihood)
+                    #test_likelihood = self.results[ensemble_size - 1, posterior_idx, seed_idx] = np.exp(-log_loss(y_true=self.y_test, y_pred=aggregated_ensemble_prediction))
+                    #results.append(test_likelihood)
 
         # print results
         for ensemble_size in range(1, num_models + 1):
