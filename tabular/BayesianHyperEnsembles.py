@@ -23,6 +23,8 @@ class BayesianHyperEnsembles:
         # checkpoints
         self.models = []
 
+        self.use_uncorrelated_models = self.config['uncorrelated_models']
+
         # the validation errors of each model
         self.model_likelihoods = []
 
@@ -138,26 +140,32 @@ class BayesianHyperEnsembles:
 
             for ensemble_size in range(1, num_models+1):
 
-                model_likelihoods = self.model_likelihoods[seed_idx][:ensemble_size]
-                model_val_predictions = self.model_val_predictions[seed_idx][:ensemble_size]
+                all_eligible_model_idxs = [*range(ensemble_size)]
+
+                if self.use_uncorrelated_models == "yes":
+                    model_idxs = self.filter_uncorrelated_models(self.model_val_predictions[seed_idx][:ensemble_size])
+                else:
+                    model_idxs = all_eligible_model_idxs
+
+                print(ensemble_size, len(model_idxs) / len(all_eligible_model_idxs))
 
                 results = []
 
                 for posterior_idx, posterior_type in enumerate(["best", "uniform", "bayesian-likelihood", "bayesian-rank", "bayesian-linear"]):
                     # compute the posteriors
-                    posteriors = self.compute_posteriors(model_likelihoods=model_likelihoods,
-                                                         model_val_predictions=model_val_predictions,
+                    posteriors = self.compute_posteriors(model_likelihoods=[self.model_likelihoods[seed_idx][i] for i in model_idxs],
+                                                         model_val_predictions=[self.model_val_predictions[seed_idx][i] for i in model_idxs],
                                                          posterior_type=posterior_type)
 
                     # the aggregated ensemble predictions, model averaging
                     aggregated_ensemble_prediction = None
 
                     # compute the predictions for the test instances
-                    for model_idx in range(ensemble_size):
+                    for i, model_idx in enumerate(model_idxs):
                         if aggregated_ensemble_prediction is None:
-                            aggregated_ensemble_prediction = posteriors[model_idx] * self.model_test_predictions[seed_idx][model_idx]
+                            aggregated_ensemble_prediction = posteriors[i] * self.model_test_predictions[seed_idx][model_idx]
                         else:
-                            aggregated_ensemble_prediction += posteriors[model_idx] * self.model_test_predictions[seed_idx][model_idx]
+                            aggregated_ensemble_prediction += posteriors[i] * self.model_test_predictions[seed_idx][model_idx]
 
                     y_test_pred_hard = np.argmax(aggregated_ensemble_prediction, axis=-1)
                     test_accuracy = accuracy_score(y_true=self.y_test, y_pred=y_test_pred_hard)
@@ -172,6 +180,43 @@ class BayesianHyperEnsembles:
             for baseline_idx in range(self.num_posterior_baselines):
                 results.append(np.mean(self.results[ensemble_size - 1, baseline_idx]))
             print(ensemble_size, results)
+
+
+    # filter the uncorrelated models
+    def filter_uncorrelated_models(self, model_val_predictions):
+
+        num_models = len(model_val_predictions)
+        uncorrelated_model_indices = []
+        remaining_models_indices = [*range(num_models)]
+
+        #print(remaining_models_indices)
+
+        while len(remaining_models_indices) > 0:
+
+            # take the most recent model of the batch
+            latest_idx = remaining_models_indices[-1]
+            # add it to the list of uncorrelated ones
+            uncorrelated_model_indices.append(latest_idx)
+            remaining_models_indices.remove(latest_idx)
+
+            correlatd_idxs = []
+            for i in remaining_models_indices:
+                diff_in_predictions = np.sum(model_val_predictions[i] != model_val_predictions[latest_idx])
+                #print(i, latest_idx, diff_in_predictions)
+                if diff_in_predictions == 0:
+                    correlatd_idxs.append(i)
+                    #print(i, latest_idx, diff_in_predictions)
+
+            #if len(correlatd_idxs) > 0:
+            #    print("correlated", latest_idx, correlatd_idxs)
+
+            # remove the indices of the correlated models
+            remaining_models_indices = [idx for idx in remaining_models_indices if idx not in correlatd_idxs]
+
+
+        #print('uncorrelated', uncorrelated_model_indices)
+
+        return uncorrelated_model_indices
 
 
     def run(self):
