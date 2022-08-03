@@ -18,7 +18,7 @@ class BayesianHyperEnsembles:
         self.y_test = None
         self.num_seeds = -1
 
-        self.alpha = 0.3
+        self.alpha = 0.5
 
         # checkpoints
         self.models = []
@@ -147,7 +147,7 @@ class BayesianHyperEnsembles:
                 else:
                     model_idxs = all_eligible_model_idxs
 
-                print(ensemble_size, len(model_idxs) / len(all_eligible_model_idxs))
+                print('ensemble size', ensemble_size, 'uncorrelated models fraction', len(model_idxs) / len(all_eligible_model_idxs))
 
                 results = []
 
