@@ -18,7 +18,7 @@ class BayesianHyperEnsembles:
         self.y_test = None
         self.num_seeds = -1
 
-        self.alpha = 0.5
+        self.alpha = 1.0
 
         # checkpoints
         self.models = []
